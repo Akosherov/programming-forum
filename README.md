@@ -231,17 +231,18 @@ This protects against bcrypt's 72-character input limit, ensuring long passwords
 
 ## Tech Stack
 
-|Layer      |     Technology                             |
-|-------    |     ----------                             |
-|Runtime    |     Python 3.12                            |
-|Framework  |     FastAPI 0.128                          |
-|Database   |     MariaDB via mariadb driver             |
-|Auth       |     JWT (python-jose) + bcrypt             |
-|Validation |     Pydantic v2                            |
-|Password   |     bcrypt via passlib + SHA-256 pre-hash  |
-|Config     |     python-dotenv                          |
-|Testing    |     unit tests                             |
-|ASGI server|     Uvicorn                                |
+|Layer      |     Technology                                               |
+|-------    |     ----------                                               |
+|Runtime    |     Python 3.12                                              |
+|Framework  |     FastAPI 0.128                                            |
+|Database   |     MariaDB via mariadb driver                               |
+|Auth       |     JWT (python-jose) + bcrypt                               |
+|Validation |     Pydantic v2                                              |
+|Password   |     bcrypt + SHA-256 pre-hash                                |
+|Config     |     python-dotenv                                            |
+|Testing    |     unit tests                                               |
+|ASGI server|     Uvicorn                                                  |
+|Frontend   | HTML + CSS + JS (AI-assisted, not the focus of this project) |
 
 ## Setup & Installation
 
@@ -262,7 +263,7 @@ requirements.txt
 
 1. **Clone the repository**
 
-    git clone https://github.com/forum-website/forum_project.git
+    git clone git clone https://github.com/Akosherov/programming-forum.git
     cd <forum_project>
 
 
@@ -291,7 +292,7 @@ requirements.txt
         DB_HOST=localhost
         DB_USER=your_db_user
         DB_PASSWORD=your_db_password
-        DB_NAME=forum_schema
+        DB_NAME=forum_schema2.0
 
         The .env file is read once when the application starts. If you change any value, restart the server for it to take effect.
 
@@ -350,11 +351,3 @@ This allows you to:
 ## Database Diagram
 
 ![DB_Diagram](images/db_diagram.png)
-
-## Contributors
-For further information, please feel free to contact us:
-
-| Authors         | GitHub                          |
-| ------          | -----                           |
-| Atanas Kosherov | https://github.com/Akosherov    |
-
