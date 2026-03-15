@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="section-title" style="margin-bottom:1.5rem">⚡ Admin Panel</div>
+
+<div class="admin-grid" id="admin-stats-grid">
+  <div class="admin-stat">
+    <span class="admin-stat-icon">👥</span>
+    <div>
+      <div class="admin-stat-num">{{ stats.total_users }}</div>
+      <div class="admin-stat-label">Total Users</div>
+    </div>
+  </div>
+  <div class="admin-stat">
+    <span class="admin-stat-icon">📂</span>
+    <div>
+      <div class="admin-stat-num">{{ stats.total_topics }}</div>
+      <div class="admin-stat-label">Total Topics</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">User Management</div>
+<div class="toolbar" style="margin-top:1rem">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="admin-search"
+           placeholder="Search users…"
+           oninput="debounceAdminSearch()" />
+  </div>
+</div>
+
+<div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="admin-users-table">
+      <tr><td colspan="5">
+        <div class="loader"><div class="spinner"></div></div>
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  window.addEventListener('authReady', () => {
+    const u = getCurrentUser();
+    if (!u || u.role_id !== 1) { window.location = '/'; return; }
+    loadAdminUsers();
+  });
+
+  let adminTimer;
+  function debounceAdminSearch() {
+    clearTimeout(adminTimer);
+    adminTimer = setTimeout(loadAdminUsers, 350);
+  }
+
+  async function loadAdminUsers() {
+    const tbody  = document.getElementById('admin-users-table');
+    const search = document.getElementById('admin-search').value.trim();
+    tbody.innerHTML = '<tr><td colspan="5"><div class="loader"><div class="spinner"></div></div></td></tr>';
+    try {
+      const url = search ? `/users/?search=${encodeURIComponent(search)}` : '/users/';
+      const d = await apiGet(url);
+      const users = d.data.users;
+      if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:1.5rem">No users found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = users.map(u => {
+        const dot    = u.is_deleted ? 'status-deleted' : u.is_blocked ? 'status-blocked' : 'status-active';
+        const status = u.is_deleted ? 'deleted' : u.is_blocked ? 'blocked' : 'active';
+        const isAdminUser = u.role_id === 1;
+        return `<tr>
+          <td><span class="status-dot ${dot}"></span>${escHtml(u.username)}</td>
+          <td style="color:var(--text3)">${escHtml(u.email)}</td>
+          <td>${isAdminUser
+            ? '<span class="badge-admin">admin</span>'
+            : '<span style="color:var(--text3);font-size:.78rem">user</span>'}</td>
+          <td><span style="font-size:.78rem">${status}</span></td>
+          <td>
+            <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+              ${!u.is_blocked && !u.is_deleted
+                ? `<button class="btn btn-danger btn-sm" onclick="adminAction('block',${u.user_id})">Block</button>` : ''}
+              ${u.is_blocked
+                ? `<button class="btn btn-green btn-sm" onclick="adminAction('unblock',${u.user_id})">Unblock</button>` : ''}
+              ${!isAdminUser && !u.is_deleted
+                ? `<button class="btn btn-cyan btn-sm" onclick="adminAction('promote',${u.user_id})">↑ Promote</button>` : ''}
+              ${isAdminUser
+                ? `<button class="btn btn-ghost btn-sm" onclick="adminAction('demote',${u.user_id})">↓ Demote</button>` : ''}
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  async function adminAction(action, userId) {
+    const msgs = { block:'User blocked.', unblock:'User unblocked.', promote:'Promoted to admin.', demote:'Demoted to user.' };
+    try {
+      await apiPatch(`/users/${userId}/${action}`);
+      toast(msgs[action] || 'Done.', 'success');
+      loadAdminUsers();
+    } catch(e) { toast(e.message, 'error'); }
+  }
+</script>
+{% endblock %}

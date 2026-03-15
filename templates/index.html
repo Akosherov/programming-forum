@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="hero-tag">// Programming Learning Community</div>
+  <h1>Learn. Share. <em>Grow.</em></h1>
+  <p>Join thousands of developers discussing code, debugging problems, and leveling up together.</p>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num" id="stat-users"
+           data-target="{{ stats.total_users }}">{{ stats.total_users }}</div>
+      <div class="stat-label">Members</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="stat-topics"
+           data-target="{{ stats.total_topics }}">{{ stats.total_topics }}</div>
+      <div class="stat-label">Topics</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+    <a class="btn btn-primary" href="/topics">Browse Topics</a>
+    <button class="btn btn-ghost guest-only" onclick="openModal('register-modal')">
+      Join the Community
+    </button>
+    <a class="btn btn-ghost auth-only" href="/topics" style="display:none">
+      Start a Discussion
+    </a>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Most Replied -->
+  <div>
+    <div class="section-title">🔥 Most Active Topics</div>
+    <div class="ranked-list">
+      {% for t in stats.top_10_most_replied %}
+      <a class="ranked-item" href="/topics/{{ t.topic_id }}">
+        <div class="rank-num {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
+          {{ "%02d"|format(loop.index) }}
+        </div>
+        <div class="ranked-info">
+          <div class="ranked-title">{{ t.title }}</div>
+          <div class="ranked-meta">{{ t.reply_count }} replies</div>
+        </div>
+        <div class="ranked-count">{{ t.reply_count }} 💬</div>
+      </a>
+      {% else %}
+      <div class="empty-state"><p>No topics yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Most Recent -->
+  <div>
+    <div class="section-title">🆕 Recent Topics</div>
+    <div class="ranked-list">
+      {% for t in stats.top_10_most_recent %}
+      <a class="ranked-item" href="/topics/{{ t.topic_id }}">
+        <div class="rank-num {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
+          {{ "%02d"|format(loop.index) }}
+        </div>
+        <div class="ranked-info">
+          <div class="ranked-title">{{ t.title }}</div>
+          <div class="ranked-meta">by {{ t.author_username }}</div>
+        </div>
+        <div class="ranked-count">{{ t.reply_count }} 💬</div>
+      </a>
+      {% else %}
+      <div class="empty-state"><p>No topics yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Animate stat counters on load
+  document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+    const target = parseInt(el.dataset.target, 10);
+    let n = 0, step = Math.max(1, Math.floor(target / 40));
+    el.textContent = '0';
+    const t = setInterval(() => {
+      n = Math.min(n + step, target);
+      el.textContent = n.toLocaleString();
+      if (n >= target) clearInterval(t);
+    }, 25);
+  });
+</script>
+{% endblock %}

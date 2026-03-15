@@ -1,0 +1,564 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block extra_head %}
+<style>
+  .info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.25rem;
+  }
+  @media(max-width:500px){ .info-grid { grid-template-columns: 1fr; } }
+
+  .info-field {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: .65rem .9rem;
+  }
+  .info-field-label {
+    font-family: var(--mono); font-size: .65rem;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text3); margin-bottom: .2rem;
+  }
+  .info-field-value { font-size: .88rem; color: var(--text); font-weight: 500; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: .35rem;
+    font-size: .75rem; font-family: var(--mono);
+    padding: .15rem .55rem; border-radius: 20px; border: 1px solid;
+  }
+  .pill-active  { color: var(--green);  border-color: rgba(56,217,138,.35);  background: rgba(56,217,138,.08); }
+  .pill-blocked { color: var(--red);    border-color: rgba(224,80,96,.35);   background: rgba(224,80,96,.08); }
+  .pill-admin   { color: var(--accent); border-color: rgba(240,160,48,.35);  background: rgba(240,160,48,.08); }
+  .pill-user    { color: var(--cyan);   border-color: rgba(56,200,224,.35);  background: rgba(56,200,224,.08); }
+
+  .section-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;
+  }
+  .section-card-title {
+    font-family: var(--mono); font-size: .7rem; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--text3); margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .edit-form-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+  }
+  @media(max-width:500px){ .edit-form-grid { grid-template-columns: 1fr; } }
+
+  .fgi { margin-bottom: .75rem; }
+  .fgi label {
+    display: block; font-size: .72rem; font-family: var(--mono);
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--text3); margin-bottom: .3rem;
+  }
+  .fgi input {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--sans); font-size: .86rem;
+    padding: .5rem .7rem; border-radius: var(--radius); outline: none; transition: border-color .15s;
+  }
+  .fgi input:focus { border-color: var(--border2); }
+  .fgi input::placeholder { color: var(--text3); }
+  .span-2 { grid-column: span 2; }
+  @media(max-width:500px){ .span-2 { grid-column: span 1; } }
+
+  .danger-zone {
+    border: 1px solid rgba(224,80,96,.25); background: rgba(224,80,96,.04);
+    border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: 1rem;
+  }
+  .danger-zone-title {
+    font-family: var(--mono); font-size: .68rem; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--red); margin-bottom: .6rem;
+  }
+  .danger-zone p { font-size: .82rem; color: var(--text3); margin-bottom: .75rem; }
+  .delete-confirm { display: none; margin-top: .75rem; }
+  .delete-confirm.visible { display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="profile-root">
+  <div class="loader"><div class="spinner"></div></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+window.addEventListener('authReady', initProfile);
+
+async function initProfile() {
+  if (!getCurrentUser()) { window.location = '/'; return; }
+  try {
+    const r = await apiGet('/users/me');
+    setSession(getToken(), r.data);
+    updateAuthUI();
+    renderProfile(r.data);
+  } catch(e) {
+    document.getElementById('profile-root').innerHTML =
+      `<div class="empty-state"><p>Could not load profile: ${e.message}</p></div>`;
+  }
+}
+
+function renderProfile(me) {
+  const isAdmin   = me.role_id === 1;
+  const isBlocked = me.is_blocked;
+  const initials  = (me.first_name[0] + me.last_name[0]).toUpperCase();
+
+  document.getElementById('profile-root').innerHTML = `
+
+    <!-- PROFILE HEADER -->
+    <div class="profile-header" style="margin-bottom:1.5rem">
+      <div class="profile-avatar">${initials}</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+          <div class="profile-name">${escHtml(me.first_name)} ${escHtml(me.last_name)}</div>
+          ${isBlocked
+            ? '<span class="status-pill pill-blocked">⊘ Blocked</span>'
+            : '<span class="status-pill pill-active">● Active</span>'}
+          ${isAdmin
+            ? '<span class="status-pill pill-admin">⚡ Admin</span>'
+            : '<span class="status-pill pill-user">◈ User</span>'}
+        </div>
+        <div class="profile-username">@${escHtml(me.username)}</div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT INFO -->
+    <div class="section-card">
+      <div class="section-card-title">// Account Info</div>
+      <div class="info-grid">
+        <div class="info-field">
+          <div class="info-field-label">First Name</div>
+          <div class="info-field-value">${escHtml(me.first_name)}</div>
+        </div>
+        <div class="info-field">
+          <div class="info-field-label">Last Name</div>
+          <div class="info-field-value">${escHtml(me.last_name)}</div>
+        </div>
+        <div class="info-field">
+          <div class="info-field-label">Username</div>
+          <div class="info-field-value" style="font-family:var(--mono)">@${escHtml(me.username)}</div>
+        </div>
+        <div class="info-field">
+          <div class="info-field-label">Email</div>
+          <div class="info-field-value">${escHtml(me.email)}</div>
+        </div>
+        <div class="info-field">
+          <div class="info-field-label">Account Status</div>
+          <div class="info-field-value">
+            ${isBlocked
+              ? '<span style="color:var(--red)">⊘ Blocked — you cannot create topics or replies</span>'
+              : '<span style="color:var(--green)">● Active</span>'}
+          </div>
+        </div>
+        <div class="info-field">
+          <div class="info-field-label">Role</div>
+          <div class="info-field-value">${isAdmin ? '⚡ Administrator' : '◈ Regular User'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT PROFILE -->
+    <div class="section-card">
+      <div class="section-card-title">
+        <span>// Edit Profile</span>
+        <button class="btn btn-ghost btn-sm" onclick="toggleEditForm()">Edit</button>
+      </div>
+      <div id="edit-form" style="display:none">
+        <div class="edit-form-grid">
+          <div class="fgi">
+            <label>First Name</label>
+            <input type="text" id="edit-first" value="${escHtml(me.first_name)}" />
+          </div>
+          <div class="fgi">
+            <label>Last Name</label>
+            <input type="text" id="edit-last" value="${escHtml(me.last_name)}" />
+          </div>
+          <div class="fgi span-2">
+            <label>Email</label>
+            <input type="email" id="edit-email" value="${escHtml(me.email)}" />
+          </div>
+          <div class="fgi">
+            <label>New Password <span style="color:var(--text3)">(leave blank to keep)</span></label>
+            <input type="password" id="edit-new-pw" placeholder="••••••••" />
+          </div>
+          <div class="fgi">
+            <label>Current Password <span style="color:var(--red)">* required</span></label>
+            <input type="password" id="edit-cur-pw" placeholder="••••••••" />
+          </div>
+        </div>
+        <div class="error-msg"   id="edit-error"></div>
+        <div class="success-msg" id="edit-success"></div>
+        <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:.75rem">
+          <button class="btn btn-ghost btn-sm" onclick="toggleEditForm()">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="submitProfileUpdate(${me.user_id})">Save Changes</button>
+        </div>
+
+        <div class="danger-zone">
+          <div class="danger-zone-title">⚠ Danger Zone</div>
+          <p>Permanently delete your account. Your topics and replies will remain but you'll lose access.</p>
+          <button class="btn btn-danger btn-sm" onclick="toggleDeleteConfirm()">Delete My Account</button>
+          <div class="delete-confirm" id="delete-confirm">
+            <div class="fgi" style="margin-top:.75rem">
+              <label>Confirm with your password</label>
+              <input type="password" id="delete-pw" placeholder="••••••••" />
+            </div>
+            <div class="error-msg" id="delete-error"></div>
+            <div style="display:flex;gap:.5rem;margin-top:.5rem">
+              <button class="btn btn-ghost btn-sm" onclick="toggleDeleteConfirm()">Cancel</button>
+              <button class="btn btn-danger btn-sm" onclick="submitDeleteAccount(${me.user_id})">Yes, Delete Account</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(this,'tab-topics')">My Topics</button>
+      <button class="tab-btn"        onclick="switchTab(this,'tab-replies')">My Replies</button>
+      <button class="tab-btn"        onclick="switchTab(this,'tab-invites');loadMyInvitations()">📩 Invitations</button>
+      ${isAdmin ? '<button class="tab-btn" onclick="switchTab(this,\'tab-admin\')">⚡ Admin Panel</button>' : ''}
+    </div>
+
+    <div class="tab-panel active" id="tab-topics">
+      <div class="loader"><div class="spinner"></div></div>
+    </div>
+    <div class="tab-panel" id="tab-replies">
+      <div class="loader"><div class="spinner"></div></div>
+    </div>
+    <div class="tab-panel" id="tab-invites"></div>
+    <div class="tab-panel" id="tab-invites"></div>
+    ${isAdmin ? '<div class="tab-panel" id="tab-admin"><div class="loader"><div class="spinner"></div></div></div>' : ''}
+  `;
+
+  loadMyTopics();
+  loadMyReplies();
+  if (isAdmin) loadAdminPanel();
+}
+
+// ── EDIT / DELETE ───────────────────────────────────────────────
+function toggleEditForm() {
+  const el = document.getElementById('edit-form');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function toggleDeleteConfirm() {
+  document.getElementById('delete-confirm').classList.toggle('visible');
+}
+
+async function submitProfileUpdate(userId) {
+  const first   = document.getElementById('edit-first').value.trim();
+  const last    = document.getElementById('edit-last').value.trim();
+  const email   = document.getElementById('edit-email').value.trim();
+  const newPw   = document.getElementById('edit-new-pw').value;
+  const curPw   = document.getElementById('edit-cur-pw').value;
+  const errEl   = document.getElementById('edit-error');
+  const okEl    = document.getElementById('edit-success');
+  errEl.textContent = ''; okEl.textContent = '';
+
+  if (!curPw) { errEl.textContent = 'Current password is required to save changes.'; return; }
+
+  const payload = { current_password: curPw };
+  if (first)  payload.first_name = first;
+  if (last)   payload.last_name  = last;
+  if (email)  payload.email      = email;
+  if (newPw)  payload.password   = newPw;
+
+  try {
+    await apiPatch(`/users/${userId}`, payload);
+    okEl.textContent = 'Saved!';
+    toast('Profile updated!', 'success');
+    const r = await apiGet('/users/me');
+    setSession(getToken(), r.data);
+    updateAuthUI();
+    renderProfile(r.data);
+  } catch(e) { errEl.textContent = e.message; }
+}
+
+async function submitDeleteAccount(userId) {
+  const pw    = document.getElementById('delete-pw').value;
+  const errEl = document.getElementById('delete-error');
+  errEl.textContent = '';
+  if (!pw) { errEl.textContent = 'Password required.'; return; }
+  try {
+    await apiDel(`/users/${userId}`);
+    clearSession();
+    toast('Account deleted. Goodbye!', 'info');
+    window.location = '/';
+  } catch(e) { errEl.textContent = e.message; }
+}
+
+// ── MY TOPICS ──────────────────────────────────────────────────
+async function loadMyTopics() {
+  const el = document.getElementById('tab-topics');
+  try {
+    const d = await apiGet('/users/me/topics?per_page=50');
+    const topics = d.data.topics;
+    el.innerHTML = topics.length
+      ? topics.map(t => `
+          <a class="topic-card" href="/topics/${t.topic_id}">
+            <div class="topic-main">
+              <div class="topic-title">${escHtml(t.title)}</div>
+              <div class="topic-footer">
+                <span class="topic-meta">${formatDate(t.created_at)}</span>
+                ${t.is_locked  ? '<span class="tag tag-locked">🔒 locked</span>'   : ''}
+                ${t.is_private ? '<span class="tag tag-private">🔐 private</span>' : ''}
+              </div>
+            </div>
+            <div class="reply-badge">💬 ${t.reply_count || 0}</div>
+          </a>`).join('')
+      : '<div class="empty-state"><div class="emoji">📝</div><p>No topics yet. Start a discussion!</p></div>';
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+// ── MY REPLIES ─────────────────────────────────────────────────
+async function loadMyReplies() {
+  const el = document.getElementById('tab-replies');
+  try {
+    const d = await apiGet('/users/me/replies?per_page=50');
+    const replies = d.data.replies;
+    el.innerHTML = replies.length
+      ? replies.map(r => `
+          <div class="reply-card ${r.is_best ? 'best-reply' : ''}">
+            <div class="reply-author-row">
+              ${r.is_best ? '<span class="best-badge">★ Best Reply</span>' : ''}
+              <span class="reply-date" style="margin-left:auto">${formatDate(r.created_at)}</span>
+            </div>
+            <div class="reply-content">${escHtml(r.content)}</div>
+            <div class="reply-actions">
+              <span style="font-size:.73rem;color:var(--text3)">👍 ${r.likes} &nbsp; 👎 ${r.dislikes}</span>
+            </div>
+          </div>`).join('')
+      : '<div class="empty-state"><div class="emoji">💬</div><p>No replies yet.</p></div>';
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+// ── ADMIN PANEL ────────────────────────────────────────────────
+async function loadAdminPanel() {
+  const el = document.getElementById('tab-admin');
+  el.innerHTML = `
+    <div style="margin-top:1rem">
+      <div class="admin-grid" id="a-stat-grid">
+        <div class="admin-stat"><span class="admin-stat-icon">👥</span>
+          <div><div class="admin-stat-num" id="a-user-count">—</div><div class="admin-stat-label">Total Users</div></div>
+        </div>
+        <div class="admin-stat"><span class="admin-stat-icon">📂</span>
+          <div><div class="admin-stat-num" id="a-topic-count">—</div><div class="admin-stat-label">Total Topics</div></div>
+        </div>
+      </div>
+
+      <div style="margin:1.5rem 0 .5rem;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text3)">
+        // User Management
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="a-user-search"
+                 placeholder="Search by username, name, email…"
+                 oninput="debounceAdminSearch()" />
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="a-users-tbody">
+            <tr><td colspan="5"><div class="loader"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin:2rem 0 .5rem;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text3)">
+        // Topic Management
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="a-topic-search"
+                 placeholder="Search topics to lock, unlock, or delete…"
+                 oninput="debounceAdminTopicSearch()" />
+        </div>
+      </div>
+      <div id="a-topics-list">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>`;
+
+  await loadAdminStats();
+  await loadAdminUsers();
+  await loadAdminTopics();
+}
+
+async function loadAdminStats() {
+  try {
+    const r = await apiGet('/stats/');
+    const d = document.getElementById('a-user-count');
+    const t = document.getElementById('a-topic-count');
+    if (d) d.textContent = r.data.total_users;
+    if (t) t.textContent = r.data.total_topics;
+  } catch(e) {}
+}
+
+let adminUserTimer, adminTopicTimer;
+function debounceAdminSearch()      { clearTimeout(adminUserTimer);  adminUserTimer  = setTimeout(loadAdminUsers,  350); }
+function debounceAdminTopicSearch() { clearTimeout(adminTopicTimer); adminTopicTimer = setTimeout(loadAdminTopics, 350); }
+
+async function loadAdminUsers() {
+  const tbody = document.getElementById('a-users-tbody');
+  if (!tbody) return;
+  const search = document.getElementById('a-user-search')?.value.trim() || '';
+  tbody.innerHTML = '<tr><td colspan="5"><div class="loader"><div class="spinner"></div></div></td></tr>';
+  try {
+    const url = search ? `/users/?search=${encodeURIComponent(search)}` : '/users/';
+    const d   = await apiGet(url);
+    const me  = getCurrentUser();
+    const users = d.data.users;
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:1.5rem">No users found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = users.map(u => {
+      const dot    = u.is_deleted ? 'status-deleted' : u.is_blocked ? 'status-blocked' : 'status-active';
+      const status = u.is_deleted ? 'deleted' : u.is_blocked ? 'blocked' : 'active';
+      const isAdm  = u.role_id === 1;
+      const isSelf = me && u.user_id === me.user_id;
+      return `<tr>
+        <td>
+          <span class="status-dot ${dot}"></span>${escHtml(u.username)}
+          ${isSelf ? '<span style="font-size:.68rem;color:var(--text3);margin-left:.3rem">(you)</span>' : ''}
+        </td>
+        <td style="color:var(--text3);font-size:.8rem">${escHtml(u.email || '—')}</td>
+        <td>${isAdm ? '<span class="badge-admin">admin</span>' : '<span style="color:var(--text3);font-size:.78rem">user</span>'}</td>
+        <td><span style="font-size:.78rem">${status}</span></td>
+        <td>
+          <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+            ${!isSelf && !u.is_blocked && !u.is_deleted
+              ? `<button class="btn btn-danger btn-sm" onclick="doAdminUser('block',${u.user_id})">Block</button>` : ''}
+            ${!isSelf && u.is_blocked
+              ? `<button class="btn btn-green btn-sm" onclick="doAdminUser('unblock',${u.user_id})">Unblock</button>` : ''}
+            ${!isSelf && !isAdm && !u.is_deleted
+              ? `<button class="btn btn-cyan btn-sm" onclick="doAdminUser('promote',${u.user_id})">↑ Promote</button>` : ''}
+            ${!isSelf && isAdm
+              ? `<button class="btn btn-ghost btn-sm" onclick="doAdminUser('demote',${u.user_id})">↓ Demote</button>` : ''}
+            ${isSelf ? '<span style="font-size:.73rem;color:var(--text3)">—</span>' : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function doAdminUser(action, userId) {
+  const labels = { block:'Blocked.', unblock:'Unblocked.', promote:'Promoted to admin.', demote:'Demoted.' };
+  try {
+    await apiPatch(`/users/${userId}/${action}`);
+    toast(labels[action] || 'Done.', 'success');
+    loadAdminUsers();
+    loadAdminStats();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function loadAdminTopics() {
+  const el = document.getElementById('a-topics-list');
+  if (!el) return;
+  const search = document.getElementById('a-topic-search')?.value.trim() || '';
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  try {
+    let url = '/topics/?per_page=20&sort_by=created_at&sort_order=desc';
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    const d = await apiGet(url);
+    const topics = d.data.topics;
+    if (!topics.length) { el.innerHTML = '<div class="empty-state"><p>No topics found.</p></div>'; return; }
+    el.innerHTML = topics.map(t => `
+      <div class="topic-card" style="cursor:default">
+        <div class="topic-main" style="cursor:pointer" onclick="window.location='/topics/${t.topic_id}'">
+          <div class="topic-title">${escHtml(t.title)}</div>
+          <div class="topic-footer">
+            <span class="topic-meta">by <strong>${escHtml(t.author_username)}</strong></span>
+            <span class="topic-meta">${formatDate(t.created_at)}</span>
+            ${t.is_locked  ? '<span class="tag tag-locked">🔒 locked</span>'   : '<span class="tag tag-open">open</span>'}
+            ${t.is_private ? '<span class="tag tag-private">🔐 private</span>' : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:.35rem;align-items:center;flex-shrink:0">
+          ${!t.is_locked
+            ? `<button class="btn btn-cyan btn-sm"  onclick="doAdminTopic('lock',${t.topic_id})">🔒 Lock</button>`
+            : `<button class="btn btn-green btn-sm" onclick="doAdminTopic('unlock',${t.topic_id})">🔓 Unlock</button>`}
+          <button class="btn btn-danger btn-sm" onclick="doAdminTopic('delete',${t.topic_id})">🗑</button>
+        </div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+async function doAdminTopic(action, topicId) {
+  if (action === 'delete' && !confirm('Delete this topic permanently?')) return;
+  try {
+    if (action === 'lock')   await apiPatch(`/topics/${topicId}/lock`);
+    if (action === 'unlock') await apiPatch(`/topics/${topicId}/unlock`);
+    if (action === 'delete') await apiDel(`/topics/${topicId}`);
+    toast(action === 'delete' ? 'Topic deleted.' : `Topic ${action}ed.`, 'success');
+    loadAdminTopics();
+    loadAdminStats();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ── TABS ───────────────────────────────────────────────────────
+function switchTab(btn, panelId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId)?.classList.add('active');
+}
+
+async function loadMyInvitations() {
+  const el = document.getElementById('tab-invites');
+  if (!el) return;
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  try {
+    // Fetch all invitations (all statuses) so user can see history
+    const [pendingR, allR] = await Promise.all([
+      apiGet('/invitations/?status=0&per_page=50'),
+      apiGet('/invitations/?per_page=50'),
+    ]);
+    const all = allR.data.invitations || [];
+    if (!all.length) {
+      el.innerHTML = '<div class="empty-state"><div class="emoji">📭</div><p>No invitations yet.</p></div>';
+      return;
+    }
+    const statusLabel = { 0: 'Pending', 1: 'Accepted', 2: 'Declined' };
+    const statusStyle = {
+      0: 'color:var(--accent);border-color:rgba(240,160,48,.3);background:rgba(240,160,48,.08)',
+      1: 'color:var(--green);border-color:rgba(56,217,138,.3);background:rgba(56,217,138,.08)',
+      2: 'color:var(--text3);border-color:var(--border);background:var(--bg3)',
+    };
+    el.innerHTML = all.map(inv => `
+      <div class="reply-card" id="inv-row-${inv.invitation_id}">
+        <div class="reply-author-row">
+          <span style="font-size:.82rem;font-weight:500">📩 ${escHtml(inv.topic_title)}</span>
+          <span class="status-pill" style="${statusStyle[inv.invitation_status] || ''};margin-left:auto">
+            ${statusLabel[inv.invitation_status] || '?'}
+          </span>
+        </div>
+        <div style="font-size:.78rem;color:var(--text3);margin:.3rem 0 .6rem">
+          Invited by <strong>${escHtml(inv.invited_by_username)}</strong>
+        </div>
+        ${inv.invitation_status === 0 ? `
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-green btn-sm" onclick="profileRespondInvite(${inv.invitation_id},1)">✓ Accept</button>
+          <button class="btn btn-danger btn-sm" onclick="profileRespondInvite(${inv.invitation_id},2)">✕ Decline</button>
+          <a class="btn btn-ghost btn-sm" href="/topics/${inv.topic_id}">View topic</a>
+        </div>` : `
+        <a class="btn btn-ghost btn-sm" href="/topics/${inv.topic_id}">View topic</a>`}
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state"><p>${escHtml(e.message)}</p></div>`;
+  }
+}
+
+async function profileRespondInvite(invId, status) {
+  try {
+    await apiPatch('/invitations/' + invId, { invitation_status: status });
+    toast(status === 1 ? 'Accepted! You can now access the topic.' : 'Declined.', status === 1 ? 'success' : 'info');
+    loadMyInvitations();
+    loadNotifications(); // refresh bell count too
+  } catch(e) { toast(e.message, 'error'); }
+}
+</script>
+{% endblock %}

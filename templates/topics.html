@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Topics{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="search-input"
+           placeholder="Search topics…"
+           value="{{ search or '' }}"
+           oninput="debounceSearch()" />
+  </div>
+  <select id="sort-by" onchange="reloadTopics()">
+    <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Newest</option>
+    <option value="reply_count" {% if sort_by == 'reply_count' %}selected{% endif %}>Most replied</option>
+    <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title A–Z</option>
+  </select>
+  <select id="sort-order" onchange="reloadTopics()">
+    <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>↓ Desc</option>
+    <option value="asc"  {% if sort_order == 'asc'  %}selected{% endif %}>↑ Asc</option>
+  </select>
+  <button class="btn btn-primary btn-sm auth-only" id="new-topic-btn"
+          style="display:none" onclick="openCreateTopic()">+ New Topic</button>
+</div>
+
+<!-- Server-rendered initial topics list -->
+<div id="topics-list">
+  {% if topics %}
+    {% for t in topics %}
+    <a class="topic-card" href="/topics/{{ t.topic_id }}">
+      <div class="topic-main">
+        <div class="topic-title">{{ t.title }}</div>
+        <div class="topic-excerpt">{{ t.content }}</div>
+        <div class="topic-footer">
+          <span class="topic-meta">by <strong>{{ t.author_username }}</strong></span>
+          <span class="topic-meta">{{ t.created_at }}</span>
+          {% if t.is_locked %}
+            <span class="tag tag-locked">🔒 locked</span>
+          {% else %}
+            <span class="tag tag-open">open</span>
+          {% endif %}
+          {% if t.is_private %}
+            <span class="tag tag-private">🔐 private</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="reply-badge">💬 {{ t.reply_count or 0 }}</div>
+    </a>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="emoji">📭</div>
+      <p>No topics yet. Be the first to start a discussion!</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="topics-pagination">
+  {% if total_pages > 1 %}
+    {% if page > 1 %}
+      <button class="btn btn-ghost btn-sm"
+              onclick="goToPage({{ page - 1 }})">← Prev</button>
+    {% else %}
+      <button class="btn btn-ghost btn-sm" disabled>← Prev</button>
+    {% endif %}
+    <span class="page-info">{{ page }} / {{ total_pages }}</span>
+    {% if page < total_pages %}
+      <button class="btn btn-ghost btn-sm"
+              onclick="goToPage({{ page + 1 }})">Next →</button>
+    {% else %}
+      <button class="btn btn-ghost btn-sm" disabled>Next →</button>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Keep page state for JS-driven search/pagination
+  let currentPage = {{ page }};
+
+  function reloadTopics() {
+    currentPage = 1;
+    fetchTopics();
+  }
+
+  let searchTimer;
+  function debounceSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { currentPage = 1; fetchTopics(); }, 350);
+  }
+
+  function goToPage(p) {
+    currentPage = p;
+    fetchTopics();
+  }
+
+  async function fetchTopics() {
+    const el   = document.getElementById('topics-list');
+    const pgEl = document.getElementById('topics-pagination');
+    const search   = document.getElementById('search-input').value.trim();
+    const sortBy   = document.getElementById('sort-by').value;
+    const sortOrd  = document.getElementById('sort-order').value;
+    let url = `/topics/?sort_by=${sortBy}&sort_order=${sortOrd}&page=${currentPage}&per_page=15`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+
+    el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+    try {
+      const d = await apiGet(url);
+      const { topics, total, page, per_page } = d.data;
+      const totalPages = Math.ceil(total / per_page);
+
+      if (!topics.length) {
+        el.innerHTML = '<div class="empty-state"><div class="emoji">🔍</div><p>No topics found.</p></div>';
+        pgEl.innerHTML = '';
+        return;
+      }
+
+      el.innerHTML = topics.map(t => `
+        <a class="topic-card" href="/topics/${t.topic_id}">
+          <div class="topic-main">
+            <div class="topic-title">${escHtml(t.title)}</div>
+            <div class="topic-excerpt">${escHtml(t.content || '')}</div>
+            <div class="topic-footer">
+              <span class="topic-meta">by <strong>${escHtml(t.author_username || '')}</strong></span>
+              <span class="topic-meta">${formatDate(t.created_at)}</span>
+              ${t.is_locked
+                ? '<span class="tag tag-locked">🔒 locked</span>'
+                : '<span class="tag tag-open">open</span>'}
+              ${t.is_private ? '<span class="tag tag-private">🔐 private</span>' : ''}
+            </div>
+          </div>
+          <div class="reply-badge">💬 ${t.reply_count || 0}</div>
+        </a>`).join('');
+
+      pgEl.innerHTML = totalPages > 1 ? `
+        <button class="btn btn-ghost btn-sm" ${page <= 1 ? 'disabled' : ''}
+                onclick="goToPage(${page - 1})">← Prev</button>
+        <span class="page-info">${page} / ${totalPages}</span>
+        <button class="btn btn-ghost btn-sm" ${page >= totalPages ? 'disabled' : ''}
+                onclick="goToPage(${page + 1})">Next →</button>` : '';
+    } catch(e) {
+      el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
+    }
+  }
+</script>
+{% endblock %}

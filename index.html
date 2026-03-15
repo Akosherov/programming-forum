@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DevForum — Programming Learning Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #0c0e13;
+    --bg2:       #141720;
+    --bg3:       #1c2030;
+    --border:    #252a3a;
+    --border2:   #2e3450;
+    --text:      #c9d1e8;
+    --text2:     #7a85a8;
+    --text3:     #4a5270;
+    --accent:    #f0a030;
+    --accent2:   #e07820;
+    --cyan:      #38c8e0;
+    --green:     #38d98a;
+    --red:       #e05060;
+    --purple:    #9070f0;
+    --radius:    8px;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'IBM Plex Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: .4;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(12,14,19,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 2rem; height: 60px; gap: 2rem;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -.02em;
+    cursor: pointer;
+    display: flex; align-items: center; gap: .5rem;
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--text2); font-weight: 400; }
+  nav { display: flex; gap: .25rem; flex: 1; }
+  .nav-btn {
+    font-family: var(--sans); font-size: .82rem; font-weight: 500;
+    color: var(--text2); background: none; border: none;
+    padding: .35rem .75rem; border-radius: var(--radius);
+    cursor: pointer; transition: all .15s; letter-spacing: .02em;
+  }
+  .nav-btn:hover, .nav-btn.active { color: var(--text); background: var(--bg3); }
+  .header-right { display: flex; align-items: center; gap: .75rem; margin-left: auto; }
+  .user-badge {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .82rem; color: var(--text2);
+  }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: .7rem; color: var(--accent);
+    font-weight: 600;
+  }
+  .badge-admin {
+    font-size: .65rem; font-family: var(--mono);
+    background: rgba(240,160,48,.15); color: var(--accent);
+    border: 1px solid rgba(240,160,48,.3);
+    padding: .1rem .35rem; border-radius: 4px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-family: var(--sans); font-size: .82rem; font-weight: 500;
+    padding: .45rem 1rem; border-radius: var(--radius);
+    cursor: pointer; border: 1px solid transparent;
+    transition: all .15s; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #0c0e13; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+  .btn-ghost { background: transparent; color: var(--text2); border-color: var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); background: var(--bg3); }
+  .btn-danger { background: rgba(224,80,96,.15); color: var(--red); border-color: rgba(224,80,96,.3); }
+  .btn-danger:hover { background: rgba(224,80,96,.25); }
+  .btn-cyan { background: rgba(56,200,224,.12); color: var(--cyan); border-color: rgba(56,200,224,.3); }
+  .btn-cyan:hover { background: rgba(56,200,224,.2); }
+  .btn-green { background: rgba(56,217,138,.12); color: var(--green); border-color: rgba(56,217,138,.3); }
+  .btn-green:hover { background: rgba(56,217,138,.2); }
+  .btn-sm { padding: .25rem .6rem; font-size: .75rem; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── LAYOUT ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* ── VIEWS ── */
+  .view { display: none; animation: fadeUp .3s ease; }
+  .view.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HOME ── */
+  .hero {
+    text-align: center; padding: 3.5rem 1rem 2.5rem;
+    position: relative;
+  }
+  .hero-tag {
+    display: inline-block; font-family: var(--mono);
+    font-size: .72rem; letter-spacing: .12em;
+    color: var(--accent); text-transform: uppercase;
+    border: 1px solid rgba(240,160,48,.3);
+    padding: .25rem .75rem; border-radius: 20px;
+    margin-bottom: 1.25rem;
+    background: rgba(240,160,48,.06);
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 600; line-height: 1.15;
+    letter-spacing: -.03em; margin-bottom: .75rem;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p { color: var(--text2); font-size: 1.05rem; max-width: 480px; margin: 0 auto 2rem; }
+  .stats-bar {
+    display: flex; justify-content: center; gap: 3rem;
+    margin-bottom: 2rem;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: var(--mono); font-size: 2rem; font-weight: 600;
+    color: var(--accent); line-height: 1;
+  }
+  .stat-label { font-size: .78rem; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin-top: .2rem; }
+
+  .section-title {
+    font-family: var(--mono); font-size: .72rem; font-weight: 600;
+    color: var(--text3); text-transform: uppercase; letter-spacing: .1em;
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 3rem; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .ranked-list { display: flex; flex-direction: column; gap: .5rem; }
+  .ranked-item {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .65rem .75rem; border-radius: var(--radius);
+    background: var(--bg2); border: 1px solid var(--border);
+    cursor: pointer; transition: all .15s;
+  }
+  .ranked-item:hover { border-color: var(--border2); background: var(--bg3); }
+  .rank-num {
+    font-family: var(--mono); font-size: .7rem; font-weight: 600;
+    color: var(--text3); min-width: 1.4rem; text-align: center;
+  }
+  .rank-num.gold { color: var(--accent); }
+  .rank-num.silver { color: var(--text2); }
+  .rank-num.bronze { color: #c87040; }
+  .ranked-info { flex: 1; min-width: 0; }
+  .ranked-title { font-size: .85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ranked-meta { font-size: .73rem; color: var(--text3); margin-top: .1rem; }
+  .ranked-count {
+    font-family: var(--mono); font-size: .75rem; color: var(--cyan);
+    background: rgba(56,200,224,.08); border: 1px solid rgba(56,200,224,.2);
+    padding: .1rem .4rem; border-radius: 4px; flex-shrink: 0;
+  }
+
+  /* ── TOPICS LIST ── */
+  .toolbar {
+    display: flex; align-items: center; gap: .75rem;
+    margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .search-wrap {
+    flex: 1; min-width: 200px; position: relative;
+  }
+  .search-wrap input {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--sans); font-size: .85rem;
+    padding: .5rem .75rem .5rem 2.25rem;
+    border-radius: var(--radius); outline: none;
+    transition: border-color .15s;
+  }
+  .search-wrap input:focus { border-color: var(--border2); }
+  .search-wrap input::placeholder { color: var(--text3); }
+  .search-icon {
+    position: absolute; left: .6rem; top: 50%; transform: translateY(-50%);
+    color: var(--text3); font-size: .9rem; pointer-events: none;
+  }
+  select {
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--sans); font-size: .82rem;
+    padding: .5rem .75rem; border-radius: var(--radius); outline: none;
+    cursor: pointer; transition: border-color .15s;
+  }
+  select:focus { border-color: var(--border2); }
+
+  .topic-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.1rem 1.25rem;
+    margin-bottom: .75rem; cursor: pointer;
+    transition: all .15s;
+    display: flex; gap: 1rem; align-items: flex-start;
+  }
+  .topic-card:hover { border-color: var(--border2); background: var(--bg3); transform: translateX(3px); }
+  .topic-main { flex: 1; min-width: 0; }
+  .topic-title { font-weight: 500; font-size: .95rem; margin-bottom: .35rem; line-height: 1.35; }
+  .topic-excerpt { font-size: .82rem; color: var(--text2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .topic-footer { display: flex; align-items: center; gap: .75rem; margin-top: .6rem; flex-wrap: wrap; }
+  .topic-meta { font-size: .73rem; color: var(--text3); }
+  .tag {
+    font-size: .68rem; font-family: var(--mono);
+    padding: .1rem .45rem; border-radius: 4px; border: 1px solid;
+  }
+  .tag-locked { color: var(--red); border-color: rgba(224,80,96,.3); background: rgba(224,80,96,.08); }
+  .tag-private { color: var(--purple); border-color: rgba(144,112,240,.3); background: rgba(144,112,240,.08); }
+  .tag-open { color: var(--green); border-color: rgba(56,217,138,.3); background: rgba(56,217,138,.08); }
+  .reply-badge {
+    margin-left: auto; font-family: var(--mono); font-size: .73rem;
+    color: var(--text3); flex-shrink: 0;
+    display: flex; align-items: center; gap: .25rem;
+  }
+
+  .pagination { display: flex; align-items: center; justify-content: center; gap: .5rem; margin-top: 1.5rem; }
+  .page-info { font-size: .8rem; color: var(--text3); font-family: var(--mono); }
+
+  /* ── TOPIC DETAIL ── */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    color: var(--text3); font-size: .82rem; cursor: pointer;
+    margin-bottom: 1.25rem; transition: color .15s;
+    background: none; border: none; font-family: var(--sans);
+  }
+  .back-btn:hover { color: var(--text); }
+  .topic-detail-header {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .topic-detail-title { font-size: 1.45rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: .75rem; line-height: 1.3; }
+  .topic-detail-meta { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .topic-detail-content { font-size: .92rem; color: var(--text2); line-height: 1.7; white-space: pre-wrap; }
+  .topic-actions { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+
+  .replies-header { margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+  .reply-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+    margin-bottom: .75rem; transition: border-color .15s;
+  }
+  .reply-card.best-reply { border-color: rgba(240,160,48,.4); background: rgba(240,160,48,.04); }
+  .reply-author-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem; }
+  .reply-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: .65rem; color: var(--cyan); font-weight: 600;
+    flex-shrink: 0;
+  }
+  .reply-username { font-size: .82rem; font-weight: 500; }
+  .reply-date { font-size: .72rem; color: var(--text3); margin-left: auto; }
+  .best-badge {
+    font-size: .65rem; font-family: var(--mono);
+    background: rgba(240,160,48,.15); color: var(--accent);
+    border: 1px solid rgba(240,160,48,.3);
+    padding: .1rem .35rem; border-radius: 4px;
+  }
+  .reply-content { font-size: .88rem; color: var(--text2); line-height: 1.65; white-space: pre-wrap; margin-bottom: .75rem; }
+  .reply-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .reaction-btn {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .75rem; font-family: var(--mono);
+    padding: .2rem .55rem; border-radius: 20px;
+    cursor: pointer; border: 1px solid var(--border);
+    background: transparent; color: var(--text3); transition: all .15s;
+  }
+  .reaction-btn:hover { border-color: var(--border2); color: var(--text); }
+  .reaction-btn.liked { border-color: rgba(56,217,138,.4); color: var(--green); background: rgba(56,217,138,.08); }
+  .reaction-btn.disliked { border-color: rgba(224,80,96,.4); color: var(--red); background: rgba(224,80,96,.08); }
+
+  .reply-form-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .reply-form-title { font-family: var(--mono); font-size: .72rem; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .75rem; }
+  textarea {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--sans); font-size: .88rem;
+    padding: .75rem; border-radius: var(--radius); outline: none;
+    resize: vertical; min-height: 100px; transition: border-color .15s; line-height: 1.6;
+  }
+  textarea:focus { border-color: var(--border2); }
+  textarea::placeholder { color: var(--text3); }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem; opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 1.75rem; width: 100%; max-width: 480px;
+    transform: scale(.95); transition: transform .2s;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .modal-title { font-size: 1.1rem; font-weight: 600; letter-spacing: -.02em; }
+  .modal-close { background: none; border: none; color: var(--text3); font-size: 1.25rem; cursor: pointer; padding: .25rem; line-height: 1; transition: color .15s; }
+  .modal-close:hover { color: var(--text); }
+  .form-group { margin-bottom: 1rem; }
+  label { display: block; font-size: .78rem; font-weight: 500; color: var(--text2); margin-bottom: .35rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+  input[type=text], input[type=email], input[type=password] {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--sans); font-size: .88rem;
+    padding: .55rem .75rem; border-radius: var(--radius); outline: none;
+    transition: border-color .15s;
+  }
+  input:focus { border-color: var(--border2); }
+  input::placeholder { color: var(--text3); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .form-footer { margin-top: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+  .form-switch { font-size: .8rem; color: var(--text3); }
+  .form-switch a { color: var(--accent); text-decoration: none; cursor: pointer; }
+  .form-switch a:hover { text-decoration: underline; }
+  .error-msg { font-size: .8rem; color: var(--red); margin-top: .5rem; min-height: 1rem; }
+  .success-msg { font-size: .8rem; color: var(--green); margin-top: .5rem; min-height: 1rem; }
+
+  /* ── PROFILE ── */
+  .profile-header {
+    display: flex; align-items: center; gap: 1.5rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  .profile-avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--bg3); border: 2px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 1.4rem; color: var(--accent); font-weight: 600;
+    flex-shrink: 0;
+  }
+  .profile-name { font-size: 1.2rem; font-weight: 600; letter-spacing: -.02em; }
+  .profile-username { font-family: var(--mono); font-size: .8rem; color: var(--text3); margin-top: .15rem; }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+  .tab-btn {
+    background: none; border: none; font-family: var(--sans); font-size: .85rem;
+    font-weight: 500; color: var(--text3); padding: .65rem 1.25rem;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all .15s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:hover:not(.active) { color: var(--text2); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── ADMIN ── */
+  .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+  @media (max-width: 600px) { .admin-grid { grid-template-columns: 1fr; } }
+  .admin-stat {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .admin-stat-icon { font-size: 1.5rem; }
+  .admin-stat-num { font-family: var(--mono); font-size: 1.4rem; font-weight: 600; color: var(--accent); }
+  .admin-stat-label { font-size: .75rem; color: var(--text3); }
+
+  table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+  th { text-align: left; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); padding: .5rem .75rem; border-bottom: 1px solid var(--border); }
+  td { padding: .6rem .75rem; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+  .status-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: .4rem;
+  }
+  .status-active { background: var(--green); }
+  .status-blocked { background: var(--red); }
+  .status-deleted { background: var(--text3); }
+
+  /* ── TOAST ── */
+  #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 500; display: flex; flex-direction: column; gap: .5rem; }
+  .toast {
+    display: flex; align-items: center; gap: .6rem;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: .65rem 1rem;
+    font-size: .83rem; min-width: 220px; max-width: 360px;
+    animation: slideIn .25s ease;
+    box-shadow: 0 4px 24px rgba(0,0,0,.4);
+  }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error   { border-left: 3px solid var(--red); }
+  .toast.info    { border-left: 3px solid var(--cyan); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* ── EMPTY / LOADING ── */
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); }
+  .empty-state .emoji { font-size: 2.5rem; margin-bottom: .75rem; }
+  .empty-state p { font-size: .9rem; }
+  .loader { display: flex; justify-content: center; padding: 2rem; }
+  .spinner {
+    width: 28px; height: 28px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  /* ── CHECKBOX ── */
+  .check-row { display: flex; align-items: center; gap: .5rem; }
+  .check-row input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
+  .check-row label { font-size: .83rem; color: var(--text2); text-transform: none; letter-spacing: 0; margin: 0; font-family: var(--sans); }
+
+  @media (max-width: 600px) {
+    header { padding: 0 1rem; }
+    main { padding: 1.25rem 1rem; }
+    .hero { padding: 2rem .5rem 1.5rem; }
+    .stats-bar { gap: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo" onclick="navigate('home')">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="2" y="2" width="7" height="7" rx="1.5" fill="var(--accent)" opacity=".9"/>
+      <rect x="11" y="2" width="7" height="7" rx="1.5" fill="var(--accent)" opacity=".5"/>
+      <rect x="2" y="11" width="7" height="7" rx="1.5" fill="var(--accent)" opacity=".5"/>
+      <rect x="11" y="11" width="7" height="7" rx="1.5" fill="var(--accent)" opacity=".3"/>
+    </svg>
+    Dev<span>Forum</span>
+  </div>
+  <nav>
+    <button class="nav-btn" onclick="navigate('home')">Home</button>
+    <button class="nav-btn" onclick="navigate('topics')">Topics</button>
+    <button class="nav-btn" id="nav-profile" style="display:none" onclick="navigate('profile')">My Profile</button>
+    <button class="nav-btn" id="nav-admin" style="display:none" onclick="navigate('admin')">Admin</button>
+  </nav>
+  <div class="header-right" id="header-right">
+    <button class="btn btn-ghost btn-sm" onclick="openModal('login-modal')">Sign in</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal('register-modal')">Register</button>
+  </div>
+</header>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- ── HOME VIEW ── -->
+  <div class="view active" id="view-home">
+    <div class="hero">
+      <div class="hero-tag">// Programming Learning Community</div>
+      <h1>Learn. Share. <em>Grow.</em></h1>
+      <p>Join thousands of developers discussing code, debugging problems, and leveling up together.</p>
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-num" id="stat-users">—</div>
+          <div class="stat-label">Members</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="stat-topics">—</div>
+          <div class="stat-label">Topics</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="navigate('topics')">Browse Topics</button>
+        <button class="btn btn-ghost" id="home-cta-btn" onclick="openModal('register-modal')">Join the Community</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="section-title">🔥 Most Active Topics</div>
+        <div class="ranked-list" id="top-replied-list">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">🆕 Recent Topics</div>
+        <div class="ranked-list" id="top-recent-list">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TOPICS VIEW ── -->
+  <div class="view" id="view-topics">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="search-input" placeholder="Search topics…" oninput="debounceSearch()" />
+      </div>
+      <select id="sort-by" onchange="loadTopics()">
+        <option value="created_at">Newest</option>
+        <option value="reply_count">Most replied</option>
+        <option value="title">Title A–Z</option>
+      </select>
+      <select id="sort-order" onchange="loadTopics()">
+        <option value="desc">↓ Desc</option>
+        <option value="asc">↑ Asc</option>
+      </select>
+      <button class="btn btn-primary btn-sm" id="new-topic-btn" style="display:none" onclick="openCreateTopic()">+ New Topic</button>
+    </div>
+    <div id="topics-list"><div class="loader"><div class="spinner"></div></div></div>
+    <div class="pagination" id="topics-pagination"></div>
+  </div>
+
+  <!-- ── TOPIC DETAIL VIEW ── -->
+  <div class="view" id="view-topic-detail">
+    <button class="back-btn" onclick="navigate('topics')">← Back to topics</button>
+    <div id="topic-detail-content"><div class="loader"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- ── PROFILE VIEW ── -->
+  <div class="view" id="view-profile">
+    <div id="profile-content"><div class="loader"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- ── ADMIN VIEW ── -->
+  <div class="view" id="view-admin">
+    <div class="section-title" style="margin-bottom:1.5rem">⚡ Admin Panel</div>
+    <div class="admin-grid" id="admin-stats-grid"></div>
+    <div class="section-title">User Management</div>
+    <div class="toolbar" style="margin-top:1rem">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="admin-search" placeholder="Search users…" oninput="debounceAdminSearch()" />
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-users-table"><tr><td colspan="5"><div class="loader"><div class="spinner"></div></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ──────────────── MODALS ──────────────── -->
+
+<!-- LOGIN -->
+<div class="modal-overlay" id="login-modal" onclick="overlayClose(event,'login-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Sign in to DevForum</div>
+      <button class="modal-close" onclick="closeModal('login-modal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="your_username" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <div class="error-msg" id="login-error"></div>
+    <div class="form-footer">
+      <div class="form-switch">No account? <a onclick="switchModal('login-modal','register-modal')">Register</a></div>
+      <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="modal-overlay" id="register-modal" onclick="overlayClose(event,'register-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create your account</div>
+      <button class="modal-close" onclick="closeModal('register-modal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="reg-first" placeholder="John" />
+      </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input type="text" id="reg-last" placeholder="Doe" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="reg-username" placeholder="cooldev42" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="reg-password" placeholder="••••••••" />
+    </div>
+    <div class="error-msg" id="reg-error"></div>
+    <div class="success-msg" id="reg-success"></div>
+    <div class="form-footer">
+      <div class="form-switch">Already have one? <a onclick="switchModal('register-modal','login-modal')">Sign in</a></div>
+      <button class="btn btn-primary" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE / EDIT TOPIC -->
+<div class="modal-overlay" id="topic-modal" onclick="overlayClose(event,'topic-modal')">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title" id="topic-modal-title">New Topic</div>
+      <button class="modal-close" onclick="closeModal('topic-modal')">✕</button>
+    </div>
+    <input type="hidden" id="topic-edit-id" />
+    <div class="form-group">
+      <label>Title (16–128 chars)</label>
+      <input type="text" id="topic-title-input" placeholder="A clear, descriptive title for your topic" />
+    </div>
+    <div class="form-group">
+      <label>Content (32–8192 chars)</label>
+      <textarea id="topic-content-input" rows="6" placeholder="Share your question, insight, or topic details…"></textarea>
+    </div>
+    <div class="check-row" style="margin-bottom:.75rem">
+      <input type="checkbox" id="topic-private-check" />
+      <label for="topic-private-check">Make this topic private</label>
+    </div>
+    <div class="error-msg" id="topic-error"></div>
+    <div class="form-footer" style="justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('topic-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTopic()">Publish Topic</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT REPLY -->
+<div class="modal-overlay" id="edit-reply-modal" onclick="overlayClose(event,'edit-reply-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Reply</div>
+      <button class="modal-close" onclick="closeModal('edit-reply-modal')">✕</button>
+    </div>
+    <input type="hidden" id="edit-reply-id" />
+    <div class="form-group">
+      <label>Content</label>
+      <textarea id="edit-reply-content" rows="5" placeholder="Your reply…"></textarea>
+    </div>
+    <div class="error-msg" id="edit-reply-error"></div>
+    <div class="form-footer" style="justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('edit-reply-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditReply()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════
+const API = 'http://localhost:8000';
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let state = {
+  token: localStorage.getItem('df_token') || null,
+  user: JSON.parse(localStorage.getItem('df_user') || 'null'),
+  currentView: 'home',
+  topicsPage: 1,
+  topicsSearch: '',
+  currentTopicId: null,
+};
+
+// ═══════════════════════════════════════════════
+//  API HELPERS
+// ═══════════════════════════════════════════════
+async function api(method, path, body=null, form=false) {
+  const headers = {};
+  if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+  if (!form) headers['Content-Type'] = 'application/json';
+
+  const opts = { method, headers };
+  if (body) opts.body = form
+    ? new URLSearchParams(body)
+    : JSON.stringify(body);
+
+  const r = await fetch(API + path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || data.message || 'Request failed');
+  return data;
+}
+
+const get  = (p)    => api('GET',    p);
+const post = (p,b,f)=> api('POST',   p,b,f);
+const patch= (p,b)  => api('PATCH',  p,b);
+const put  = (p,b)  => api('PUT',    p,b);
+const del  = (p,b)  => api('DELETE', p,b);
+
+// ═══════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = {success:'✓', error:'✕', info:'ℹ'};
+  el.innerHTML = `<span style="font-size:.9rem">${icons[type]||'ℹ'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ═══════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════
+async function doLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  document.getElementById('login-error').textContent = '';
+  if (!u || !p) { document.getElementById('login-error').textContent = 'Please fill all fields.'; return; }
+  try {
+    const data = await post('/auth/login', { username: u, password: p }, true);
+    state.token = data.data.access_token;
+    localStorage.setItem('df_token', state.token);
+    // Fetch current user info via /users/me/topics (cheapest way to get user_id) -- use search instead
+    // Actually we decode from JWT or fetch the user. Let's do a quick trick: get own topics to find author
+    // Better: store minimal user info from the login response if available.
+    // Since the API doesn't return user info on login, we'll fetch topics and grab the user from there.
+    // Let's parse the JWT (it's not secure but fine for display).
+    const payload = JSON.parse(atob(state.token.split('.')[1]));
+    state.user = { user_id: payload.user_id };
+    // Fetch actual user details
+    const userResp = await get(`/users/${payload.user_id}`);
+    state.user = userResp.data;
+    localStorage.setItem('df_user', JSON.stringify(state.user));
+    closeModal('login-modal');
+    updateAuthUI();
+    toast(`Welcome back, ${state.user.username}!`, 'success');
+    navigate(state.currentView);
+  } catch(e) {
+    document.getElementById('login-error').textContent = e.message;
+  }
+}
+
+async function doRegister() {
+  const fn = document.getElementById('reg-first').value.trim();
+  const ln = document.getElementById('reg-last').value.trim();
+  const em = document.getElementById('reg-email').value.trim();
+  const un = document.getElementById('reg-username').value.trim();
+  const pw = document.getElementById('reg-password').value;
+  document.getElementById('reg-error').textContent = '';
+  document.getElementById('reg-success').textContent = '';
+  if (!fn||!ln||!em||!un||!pw) { document.getElementById('reg-error').textContent = 'All fields required.'; return; }
+  try {
+    await post('/auth/register', { first_name:fn, last_name:ln, email:em, username:un, password:pw });
+    document.getElementById('reg-success').textContent = 'Account created! You can now sign in.';
+    setTimeout(() => switchModal('register-modal','login-modal'), 1500);
+  } catch(e) {
+    document.getElementById('reg-error').textContent = e.message;
+  }
+}
+
+function logout() {
+  state.token = null; state.user = null;
+  localStorage.removeItem('df_token'); localStorage.removeItem('df_user');
+  updateAuthUI(); navigate('home'); toast('Signed out.', 'info');
+}
+
+function updateAuthUI() {
+  const right = document.getElementById('header-right');
+  const navP  = document.getElementById('nav-profile');
+  const navA  = document.getElementById('nav-admin');
+  if (state.user) {
+    const initials = ((state.user.first_name||'?')[0]+(state.user.last_name||'?')[0]).toUpperCase();
+    const isAdmin = state.user.role_id === 1;
+    right.innerHTML = `
+      <div class="user-badge">
+        <div class="avatar">${initials}</div>
+        <span>${state.user.username}</span>
+        ${isAdmin ? '<span class="badge-admin">admin</span>' : ''}
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>`;
+    navP.style.display = 'inline-block';
+    navA.style.display = isAdmin ? 'inline-block' : 'none';
+    document.getElementById('new-topic-btn').style.display = 'inline-flex';
+    document.getElementById('home-cta-btn').textContent = 'Browse Topics';
+    document.getElementById('home-cta-btn').onclick = () => navigate('topics');
+  } else {
+    right.innerHTML = `
+      <button class="btn btn-ghost btn-sm" onclick="openModal('login-modal')">Sign in</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('register-modal')">Register</button>`;
+    navP.style.display = 'none';
+    navA.style.display = 'none';
+    document.getElementById('new-topic-btn').style.display = 'none';
+    document.getElementById('home-cta-btn').textContent = 'Join the Community';
+    document.getElementById('home-cta-btn').onclick = () => openModal('register-modal');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+function navigate(view, ...args) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`view-${view}`)?.classList.add('active');
+  state.currentView = view;
+  if (view==='home')         loadHome();
+  if (view==='topics')       loadTopics();
+  if (view==='topic-detail') loadTopicDetail(args[0]);
+  if (view==='profile')      loadProfile();
+  if (view==='admin')        loadAdmin();
+}
+
+// ═══════════════════════════════════════════════
+//  HOME
+// ═══════════════════════════════════════════════
+async function loadHome() {
+  try {
+    const d = await get('/stats/');
+    const s = d.data;
+    animateCount('stat-users', s.total_users);
+    animateCount('stat-topics', s.total_topics);
+    renderRankedList('top-replied-list', s.top_10_most_replied, r => `${r.reply_count} replies`);
+    renderRankedList('top-recent-list', s.top_10_most_recent, r => `by ${r.author_username}`);
+  } catch(e) { console.error(e); }
+}
+
+function animateCount(id, target) {
+  const el = document.getElementById(id);
+  let n = 0, step = Math.max(1, Math.floor(target/40));
+  const t = setInterval(() => {
+    n = Math.min(n+step, target);
+    el.textContent = n.toLocaleString();
+    if (n>=target) clearInterval(t);
+  }, 25);
+}
+
+function renderRankedList(id, items, metaFn) {
+  const el = document.getElementById(id);
+  if (!items.length) { el.innerHTML = '<div class="empty-state"><p>No topics yet.</p></div>'; return; }
+  const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  el.innerHTML = items.map((item, i) => `
+    <div class="ranked-item" onclick="navigate('topic-detail',${item.topic_id})">
+      <div class="rank-num ${rankClass(i)}">${String(i+1).padStart(2,'0')}</div>
+      <div class="ranked-info">
+        <div class="ranked-title">${escHtml(item.title)}</div>
+        <div class="ranked-meta">${metaFn(item)}</div>
+      </div>
+      <div class="ranked-count">${item.reply_count} 💬</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  TOPICS LIST
+// ═══════════════════════════════════════════════
+let searchTimer;
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { state.topicsPage=1; loadTopics(); }, 350);
+}
+
+async function loadTopics() {
+  const el = document.getElementById('topics-list');
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  const search  = document.getElementById('search-input').value.trim();
+  const sortBy  = document.getElementById('sort-by').value;
+  const sortOrd = document.getElementById('sort-order').value;
+  let url = `/topics/?sort_by=${sortBy}&sort_order=${sortOrd}&page=${state.topicsPage}&per_page=15`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  try {
+    const d = await get(url);
+    const { topics, total, page, per_page } = d.data;
+    if (!topics.length) {
+      el.innerHTML = '<div class="empty-state"><div class="emoji">🔍</div><p>No topics found.</p></div>';
+      document.getElementById('topics-pagination').innerHTML = '';
+      return;
+    }
+    el.innerHTML = topics.map(t => `
+      <div class="topic-card" onclick="navigate('topic-detail',${t.topic_id})">
+        <div class="topic-main">
+          <div class="topic-title">${escHtml(t.title)}</div>
+          <div class="topic-excerpt">${escHtml(t.content||'')}</div>
+          <div class="topic-footer">
+            <span class="topic-meta">by <strong>${escHtml(t.author_username||'')}</strong></span>
+            <span class="topic-meta">${formatDate(t.created_at)}</span>
+            ${t.is_locked ? '<span class="tag tag-locked">🔒 locked</span>' : '<span class="tag tag-open">open</span>'}
+            ${t.is_private ? '<span class="tag tag-private">🔐 private</span>' : ''}
+          </div>
+        </div>
+        <div class="reply-badge">💬 ${t.reply_count||0}</div>
+      </div>`).join('');
+
+    const totalPages = Math.ceil(total/per_page);
+    document.getElementById('topics-pagination').innerHTML = totalPages > 1 ? `
+      <button class="btn btn-ghost btn-sm" ${page<=1?'disabled':''} onclick="state.topicsPage=${page-1};loadTopics()">← Prev</button>
+      <span class="page-info">${page} / ${totalPages}</span>
+      <button class="btn btn-ghost btn-sm" ${page>=totalPages?'disabled':''} onclick="state.topicsPage=${page+1};loadTopics()">Next →</button>
+    ` : '';
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  TOPIC DETAIL
+// ═══════════════════════════════════════════════
+async function loadTopicDetail(topicId) {
+  if (!topicId) return;
+  state.currentTopicId = topicId;
+  const el = document.getElementById('topic-detail-content');
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  document.getElementById(`view-topic-detail`).classList.add('active');
+  try {
+    const [topicResp, repliesResp] = await Promise.all([
+      get(`/topics/${topicId}`),
+      get(`/topics/${topicId}/replies?per_page=50`)
+    ]);
+    const t = topicResp.data;
+    const { replies } = repliesResp.data;
+    const isAuthor = state.user && state.user.user_id === t.author_id;
+    const isAdmin  = state.user && state.user.role_id === 1;
+
+    el.innerHTML = `
+      <div class="topic-detail-header">
+        <div class="topic-detail-meta">
+          ${t.is_locked ? '<span class="tag tag-locked">🔒 Locked</span>' : '<span class="tag tag-open">Open</span>'}
+          ${t.is_private ? '<span class="tag tag-private">🔐 Private</span>' : ''}
+        </div>
+        <div class="topic-detail-title">${escHtml(t.title)}</div>
+        <div class="topic-detail-meta">
+          <span class="topic-meta">Posted by <strong>${escHtml(t.author_username||'')}</strong></span>
+          <span class="topic-meta">${formatDate(t.created_at)}</span>
+          <span class="topic-meta">💬 ${t.reply_count||0} replies</span>
+        </div>
+        <div class="topic-detail-content">${escHtml(t.content)}</div>
+        <div class="topic-actions" id="topic-actions">
+          ${isAuthor||isAdmin ? `<button class="btn btn-ghost btn-sm" onclick="openEditTopic(${t.topic_id},'${escAttr(t.title)}','${escAttr(t.content)}',${t.is_private})">✏ Edit</button>` : ''}
+          ${isAuthor||isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteTopic(${t.topic_id})">🗑 Delete</button>` : ''}
+          ${isAdmin && !t.is_locked ? `<button class="btn btn-cyan btn-sm" onclick="lockTopic(${t.topic_id})">🔒 Lock</button>` : ''}
+          ${isAdmin && t.is_locked  ? `<button class="btn btn-green btn-sm" onclick="unlockTopic(${t.topic_id})">🔓 Unlock</button>` : ''}
+        </div>
+      </div>
+
+      <div class="replies-header">
+        <div class="section-title" style="margin:0">Replies (${replies.length})</div>
+      </div>
+      <div id="replies-list">${renderReplies(replies, t)}</div>
+
+      ${!t.is_locked && state.user ? `
+        <div class="reply-form-card">
+          <div class="reply-form-title">// Add your reply</div>
+          <textarea id="new-reply-content" placeholder="Share your thoughts, code snippets, or solutions…" rows="4"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:.75rem">
+            <button class="btn btn-primary" onclick="submitReply(${t.topic_id})">Post Reply</button>
+          </div>
+        </div>` : ''}
+      ${!state.user ? `<div class="reply-form-card" style="text-align:center;padding:1.5rem">
+        <p style="color:var(--text3);font-size:.88rem;margin-bottom:.75rem">Sign in to join the discussion</p>
+        <button class="btn btn-primary btn-sm" onclick="openModal('login-modal')">Sign in</button>
+      </div>` : ''}
+      ${t.is_locked ? `<div class="reply-form-card" style="text-align:center;padding:1rem">
+        <p style="color:var(--text3);font-size:.85rem">🔒 This topic is locked and no longer accepts replies.</p>
+      </div>` : ''}
+    `;
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state"><p>Error: ${e.message}</p></div>`;
+  }
+}
+
+function renderReplies(replies, topic) {
+  if (!replies.length) return '<div class="empty-state"><div class="emoji">💭</div><p>No replies yet. Be the first!</p></div>';
+  const isTopicAuthor = state.user && state.user.user_id === topic.author_id;
+  const isAdmin = state.user && state.user.role_id === 1;
+  return replies.map(r => {
+    const isOwn = state.user && state.user.user_id === r.author_id;
+    const reaction = r.current_user_reaction;
+    const initials = (r.author_username||'?').slice(0,2).toUpperCase();
+    return `
+      <div class="reply-card ${r.is_best?'best-reply':''}" id="reply-${r.id}">
+        <div class="reply-author-row">
+          <div class="reply-avatar">${initials}</div>
+          <span class="reply-username">${escHtml(r.author_username||'')}</span>
+          ${r.is_best ? '<span class="best-badge">★ Best Reply</span>' : ''}
+          <span class="reply-date">${formatDate(r.created_at)}</span>
+        </div>
+        <div class="reply-content">${escHtml(r.content)}</div>
+        <div class="reply-actions">
+          ${state.user ? `
+            <button class="reaction-btn ${reaction==='like'?'liked':''}" onclick="reactReply(${r.id},'like')">
+              👍 ${r.likes||0}
+            </button>
+            <button class="reaction-btn ${reaction==='dislike'?'disliked':''}" onclick="reactReply(${r.id},'dislike')">
+              👎 ${r.dislikes||0}
+            </button>` :
+            `<span style="font-size:.73rem;color:var(--text3)">👍 ${r.likes||0} &nbsp; 👎 ${r.dislikes||0}</span>`
+          }
+          ${isOwn||isAdmin ? `<button class="btn btn-ghost btn-sm" onclick="openEditReply(${r.id},'${escAttr(r.content)}')">✏</button>` : ''}
+          ${isOwn||isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteReply(${r.id})">🗑</button>` : ''}
+          ${isTopicAuthor && !r.is_best ? `<button class="btn btn-green btn-sm" onclick="markBest(${r.id})">★ Mark Best</button>` : ''}
+          ${isTopicAuthor && r.is_best  ? `<button class="btn btn-ghost btn-sm" onclick="unmarkBest(${r.id})">✕ Unmark</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function submitReply(topicId) {
+  const content = document.getElementById('new-reply-content').value.trim();
+  if (content.length < 2) { toast('Reply must be at least 2 characters.','error'); return; }
+  try {
+    await post(`/topics/${topicId}/replies`, { content });
+    toast('Reply posted!','success');
+    loadTopicDetail(topicId);
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function reactReply(replyId, type) {
+  try {
+    await post(`/replies/${replyId}/${type}`);
+    loadTopicDetail(state.currentTopicId);
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function markBest(replyId) {
+  try {
+    await patch(`/replies/${replyId}/mark-best`);
+    toast('Marked as best reply!','success');
+    loadTopicDetail(state.currentTopicId);
+  } catch(e) { toast(e.message,'error'); }
+}
+async function unmarkBest(replyId) {
+  try {
+    await patch(`/replies/${replyId}/unmark-best`);
+    toast('Best reply mark removed.','info');
+    loadTopicDetail(state.currentTopicId);
+  } catch(e) { toast(e.message,'error'); }
+}
+async function deleteReply(replyId) {
+  if (!confirm('Delete this reply?')) return;
+  try {
+    await del(`/replies/${replyId}`);
+    toast('Reply deleted.','info');
+    loadTopicDetail(state.currentTopicId);
+  } catch(e) { toast(e.message,'error'); }
+}
+
+function openEditReply(id, content) {
+  document.getElementById('edit-reply-id').value = id;
+  document.getElementById('edit-reply-content').value = content;
+  document.getElementById('edit-reply-error').textContent = '';
+  openModal('edit-reply-modal');
+}
+async function submitEditReply() {
+  const id = document.getElementById('edit-reply-id').value;
+  const content = document.getElementById('edit-reply-content').value.trim();
+  document.getElementById('edit-reply-error').textContent = '';
+  if (content.length < 2) { document.getElementById('edit-reply-error').textContent='Min 2 chars.'; return; }
+  try {
+    await put(`/replies/${id}`, { content });
+    closeModal('edit-reply-modal');
+    toast('Reply updated!','success');
+    loadTopicDetail(state.currentTopicId);
+  } catch(e) { document.getElementById('edit-reply-error').textContent = e.message; }
+}
+
+// ═══════════════════════════════════════════════
+//  CREATE / EDIT TOPIC
+// ═══════════════════════════════════════════════
+function openCreateTopic() {
+  if (!state.user) { openModal('login-modal'); return; }
+  document.getElementById('topic-modal-title').textContent = 'New Topic';
+  document.getElementById('topic-edit-id').value = '';
+  document.getElementById('topic-title-input').value = '';
+  document.getElementById('topic-content-input').value = '';
+  document.getElementById('topic-private-check').checked = false;
+  document.getElementById('topic-error').textContent = '';
+  openModal('topic-modal');
+}
+function openEditTopic(id, title, content, isPrivate) {
+  document.getElementById('topic-modal-title').textContent = 'Edit Topic';
+  document.getElementById('topic-edit-id').value = id;
+  document.getElementById('topic-title-input').value = title;
+  document.getElementById('topic-content-input').value = content;
+  document.getElementById('topic-private-check').checked = !!isPrivate;
+  document.getElementById('topic-error').textContent = '';
+  openModal('topic-modal');
+}
+async function submitTopic() {
+  const editId = document.getElementById('topic-edit-id').value;
+  const title  = document.getElementById('topic-title-input').value.trim();
+  const content= document.getElementById('topic-content-input').value.trim();
+  const isPrivate = document.getElementById('topic-private-check').checked;
+  document.getElementById('topic-error').textContent = '';
+  if (title.length<16||title.length>128) { document.getElementById('topic-error').textContent='Title: 16–128 chars.'; return; }
+  if (content.length<32)                 { document.getElementById('topic-error').textContent='Content: min 32 chars.'; return; }
+  try {
+    if (editId) {
+      await patch(`/topics/${editId}`, { title, content, is_private: isPrivate });
+      toast('Topic updated!','success');
+      closeModal('topic-modal');
+      loadTopicDetail(editId);
+    } else {
+      const d = await post('/topics/', { title, content, is_private: isPrivate });
+      toast('Topic created!','success');
+      closeModal('topic-modal');
+      navigate('topic-detail', d.data.topic_id);
+    }
+  } catch(e) { document.getElementById('topic-error').textContent = e.message; }
+}
+
+async function deleteTopic(id) {
+  if (!confirm('Delete this topic? This cannot be undone.')) return;
+  try {
+    await del(`/topics/${id}`);
+    toast('Topic deleted.','info');
+    navigate('topics');
+  } catch(e) { toast(e.message,'error'); }
+}
+async function lockTopic(id) {
+  try { await patch(`/topics/${id}/lock`); toast('Topic locked.','info'); loadTopicDetail(id); } catch(e) { toast(e.message,'error'); }
+}
+async function unlockTopic(id) {
+  try { await patch(`/topics/${id}/unlock`); toast('Topic unlocked.','success'); loadTopicDetail(id); } catch(e) { toast(e.message,'error'); }
+}
+
+// ═══════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════
+async function loadProfile() {
+  if (!state.user) { navigate('home'); return; }
+  const el = document.getElementById('profile-content');
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  try {
+    const [topicsResp, repliesResp] = await Promise.all([
+      get('/users/me/topics?per_page=30'),
+      get('/users/me/replies?per_page=30')
+    ]);
+    const u = state.user;
+    const initials = ((u.first_name||'?')[0]+(u.last_name||'?')[0]).toUpperCase();
+    const isAdmin = u.role_id === 1;
+    el.innerHTML = `
+      <div class="profile-header">
+        <div class="profile-avatar">${initials}</div>
+        <div>
+          <div class="profile-name">${escHtml(u.first_name||'')} ${escHtml(u.last_name||'')}</div>
+          <div class="profile-username">@${escHtml(u.username||'')}</div>
+          <div style="margin-top:.35rem;display:flex;gap:.4rem">
+            <span class="tag ${isAdmin?'tag-locked':'tag-open'}">${isAdmin?'Admin':'User'}</span>
+          </div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-my-topics')">My Topics (${topicsResp.data.total})</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-my-replies')">My Replies (${repliesResp.data.total})</button>
+      </div>
+      <div class="tab-panel active" id="tab-my-topics">
+        ${topicsResp.data.topics.length ? topicsResp.data.topics.map(t=>`
+          <div class="topic-card" onclick="navigate('topic-detail',${t.topic_id})">
+            <div class="topic-main">
+              <div class="topic-title">${escHtml(t.title)}</div>
+              <div class="topic-footer">
+                <span class="topic-meta">${formatDate(t.created_at)}</span>
+                ${t.is_locked?'<span class="tag tag-locked">🔒 locked</span>':''}
+                ${t.is_private?'<span class="tag tag-private">🔐 private</span>':''}
+              </div>
+            </div>
+            <div class="reply-badge">💬 ${t.reply_count||0}</div>
+          </div>`).join('') : '<div class="empty-state"><div class="emoji">📝</div><p>No topics yet.</p></div>'}
+      </div>
+      <div class="tab-panel" id="tab-my-replies">
+        ${repliesResp.data.replies.length ? repliesResp.data.replies.map(r=>`
+          <div class="reply-card ${r.is_best?'best-reply':''}">
+            <div class="reply-author-row">
+              ${r.is_best?'<span class="best-badge">★ Best Reply</span>':''}
+              <span class="reply-date" style="margin-left:auto">${formatDate(r.created_at)}</span>
+            </div>
+            <div class="reply-content">${escHtml(r.content)}</div>
+            <div class="reply-actions">
+              <span style="font-size:.73rem;color:var(--text3)">👍 ${r.likes} 👎 ${r.dislikes}</span>
+            </div>
+          </div>`).join('') : '<div class="empty-state"><div class="emoji">💬</div><p>No replies yet.</p></div>'}
+      </div>`;
+  } catch(e) { el.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`; }
+}
+
+function switchTab(btn, panelId) {
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(panelId)?.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════════════
+let adminSearchTimer;
+function debounceAdminSearch() {
+  clearTimeout(adminSearchTimer);
+  adminSearchTimer = setTimeout(loadAdminUsers, 350);
+}
+
+async function loadAdmin() {
+  try {
+    const d = await get('/stats/');
+    const s = d.data;
+    document.getElementById('admin-stats-grid').innerHTML = `
+      <div class="admin-stat"><span class="admin-stat-icon">👥</span><div><div class="admin-stat-num">${s.total_users}</div><div class="admin-stat-label">Total Users</div></div></div>
+      <div class="admin-stat"><span class="admin-stat-icon">📂</span><div><div class="admin-stat-num">${s.total_topics}</div><div class="admin-stat-label">Total Topics</div></div></div>`;
+  } catch(e) {}
+  loadAdminUsers();
+}
+
+async function loadAdminUsers() {
+  const tbody = document.getElementById('admin-users-table');
+  const search = document.getElementById('admin-search').value.trim();
+  tbody.innerHTML = '<tr><td colspan="5"><div class="loader"><div class="spinner"></div></div></td></tr>';
+  try {
+    const url = search ? `/users/?search=${encodeURIComponent(search)}` : '/users/';
+    const d = await get(url);
+    const users = d.data.users;
+    if (!users.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:1.5rem">No users found.</td></tr>'; return; }
+    tbody.innerHTML = users.map(u => {
+      const dot = u.is_deleted ? 'status-deleted' : u.is_blocked ? 'status-blocked' : 'status-active';
+      const status = u.is_deleted ? 'deleted' : u.is_blocked ? 'blocked' : 'active';
+      const isAdmin = u.role_id===1;
+      return `<tr>
+        <td><span class="status-dot ${dot}"></span>${escHtml(u.username)}</td>
+        <td style="color:var(--text3)">${escHtml(u.email)}</td>
+        <td>${isAdmin?'<span class="badge-admin">admin</span>':'<span style="color:var(--text3);font-size:.78rem">user</span>'}</td>
+        <td><span style="font-size:.78rem">${status}</span></td>
+        <td>
+          <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+            ${!u.is_blocked && !u.is_deleted ? `<button class="btn btn-danger btn-sm" onclick="adminBlock(${u.user_id})">Block</button>` : ''}
+            ${u.is_blocked ? `<button class="btn btn-green btn-sm" onclick="adminUnblock(${u.user_id})">Unblock</button>` : ''}
+            ${!isAdmin && !u.is_deleted ? `<button class="btn btn-cyan btn-sm" onclick="adminPromote(${u.user_id})">↑ Promote</button>` : ''}
+            ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick="adminDemote(${u.user_id})">↓ Demote</button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function adminBlock(id)   { try { await patch(`/users/${id}/block`);   toast('User blocked.','info');    loadAdminUsers(); } catch(e) { toast(e.message,'error'); } }
+async function adminUnblock(id) { try { await patch(`/users/${id}/unblock`); toast('User unblocked.','success'); loadAdminUsers(); } catch(e) { toast(e.message,'error'); } }
+async function adminPromote(id) { try { await patch(`/users/${id}/promote`); toast('User promoted to admin.','success'); loadAdminUsers(); } catch(e) { toast(e.message,'error'); } }
+async function adminDemote(id)  { try { await patch(`/users/${id}/demote`);  toast('User demoted.','info');    loadAdminUsers(); } catch(e) { toast(e.message,'error'); } }
+
+// ═══════════════════════════════════════════════
+//  MODAL HELPERS
+// ═══════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id)?.classList.add('open'); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+function overlayClose(e, id) { if (e.target.classList.contains('modal-overlay')) closeModal(id); }
+function switchModal(from, to) { closeModal(from); openModal(to); }
+document.addEventListener('keydown', e => { if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open')); });
+
+// ═══════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s).replace(/'/g,'&#39;').replace(/\n/g,'\\n');
+}
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  const now = new Date();
+  const diff = (now - dt) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff/86400)}d ago`;
+  return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+updateAuthUI();
+loadHome();
+</script>
+</body>
+</html>
