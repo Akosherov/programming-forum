@@ -15,9 +15,7 @@ def _get_user_by_username_internal(username: str) -> User | None:
     Returns None if not found or soft deleted.
     Used internally for authentication
     """
-    result = list(
-        read_query("SELECT * FROM users WHERE username = ?", (username,))
-    )
+    result = list(read_query("SELECT * FROM users WHERE username = ?", (username,)))
     if not result:
         return None
     return User.from_query_result(*result[0])
@@ -29,9 +27,7 @@ def _get_by_id_internal(user_id: int) -> User | None:
     Returns None if not found. Includes soft_deleted users (so we can
     still operate on them internally)
     """
-    result = list(
-        read_query("SELECT * FROM users WHERE user_id = ?", (user_id,))
-    )
+    result = list(read_query("SELECT * FROM users WHERE user_id = ?", (user_id,)))
     if not result:
         return None
     return User.from_query_result(*result[0])
@@ -41,10 +37,10 @@ def _get_by_id_internal(user_id: int) -> User | None:
 
 
 def get_all(
-        search: str | None = None,
-        page: int = 1,
-        per_page: int = 20,
-        ) -> UserListResponse:
+    search: str | None = None,
+    page: int = 1,
+    per_page: int = 20,
+) -> UserListResponse:
     """
     Return a paginated list of active users.
     Optionally filter by a search term:
@@ -84,15 +80,8 @@ def get_all(
 
     rows = read_query(data_sql, (*params, per_page, offset))
 
-    users = [
-        UserPublic.from_user(User.from_query_result(*row)) for row in rows
-    ]
-    return UserListResponse(
-        users=users,
-        total=total,
-        page=page,
-        per_page=per_page
-    )
+    users = [UserPublic.from_user(User.from_query_result(*row)) for row in rows]
+    return UserListResponse(users=users, total=total, page=page, per_page=per_page)
 
 
 def get_by_id(user_id: int) -> UserPublic | None:
@@ -136,14 +125,17 @@ def create_user(user_data: UserCreate) -> User:
                 role_id)
         VALUES (?, ?, ?, ?, ?, 0, 0, ?)
     """
-    user_id = insert_query(sql, (
-        user_data.first_name,
-        user_data.last_name,
-        user_data.email,
-        user_data.username,
-        hashed_password,
-        UserRole.USER
-    ))
+    user_id = insert_query(
+        sql,
+        (
+            user_data.first_name,
+            user_data.last_name,
+            user_data.email,
+            user_data.username,
+            hashed_password,
+            UserRole.USER,
+        ),
+    )
 
     return User.from_query_result(
         user_id,
@@ -154,7 +146,7 @@ def create_user(user_data: UserCreate) -> User:
         hashed_password,
         False,
         False,
-        UserRole.USER
+        UserRole.USER,
     )
 
 
@@ -179,11 +171,7 @@ def username_or_email_exists(username: str, email: str) -> bool:
 # ---------------- Authenticated User Endpoints ----------------
 
 
-def update_user(
-        user_id: int,
-        user_update: UserUpdate,
-        current_user: User
-) -> User | None:
+def update_user(user_id: int, user_update: UserUpdate, current_user: User) -> User | None:
     """
     Updates a user. Requires the current password to proceed.
     Unless it is the admin updating someone else.
@@ -279,18 +267,11 @@ def delete_user(user_id: int, data: UserDelete, current_user: User) -> bool:
         if not verify_password(data.password, user.password):
             raise UnauthorizedError("Invalid credentials")
 
-    update_query(
-        "UPDATE users SET is_deleted = 1 WHERE user_id = ?",
-        (user_id,)
-    )
+    update_query("UPDATE users SET is_deleted = 1 WHERE user_id = ?", (user_id,))
     return True
 
 
-def get_my_topics(
-        user_id: int,
-        page: int = 1,
-        per_page: int = 20
-) -> TopicList:
+def get_my_topics(user_id: int, page: int = 1, per_page: int = 20) -> TopicList:
     """
     Return a paginated list of all topics created by the user.
     Includes their private topics.
@@ -324,7 +305,7 @@ def get_my_topics(
         ORDER BY t.created_at DESC
         LIMIT ? OFFSET ?
         """,
-        (user_id, per_page, offset)
+        (user_id, per_page, offset),
     )
 
     topics = [
@@ -335,17 +316,12 @@ def get_my_topics(
             is_private=bool(row[3]),
             created_at=row[4],
             author_username=row[5],
-            reply_count=row[6] or 0
+            reply_count=row[6] or 0,
         )
         for row in rows
     ]
 
-    return TopicList(
-        topics=topics,
-        total=total,
-        page=page,
-        per_page=per_page
-    )
+    return TopicList(topics=topics, total=total, page=page, per_page=per_page)
 
 
 def get_my_replies(user_id: int, page: int = 1, per_page: int = 20) -> ReplyList:
@@ -367,7 +343,7 @@ def get_my_replies(user_id: int, page: int = 1, per_page: int = 20) -> ReplyList
         """
         SELECT
             r.reply_id,
-            r.author_id,    
+            r.author_id,
             r.reply_content,
             u.username AS author_username,
             COALESCE(SUM(CASE WHEN rr.is_like = 1 THEN 1 ELSE 0 END), 0) AS likes,
@@ -387,7 +363,7 @@ def get_my_replies(user_id: int, page: int = 1, per_page: int = 20) -> ReplyList
         ORDER BY r.created_at DESC
         LIMIT ? OFFSET ?
         """,
-        (user_id, user_id, per_page, offset)
+        (user_id, user_id, per_page, offset),
     )
 
     replies = [
@@ -400,19 +376,12 @@ def get_my_replies(user_id: int, page: int = 1, per_page: int = 20) -> ReplyList
             dislikes=row[5],
             created_at=row[6],
             is_best=bool(row[7]),
-            current_user_reaction=(
-                "like" if row[8] == 1 else "dislike"
-            ) if row[8] is not None else None
+            current_user_reaction=("like" if row[8] == 1 else "dislike") if row[8] is not None else None,
         )
         for row in rows
     ]
 
-    return ReplyList(
-        replies=replies,
-        total=total,
-        page=page,
-        per_page=per_page
-    )
+    return ReplyList(replies=replies, total=total, page=page, per_page=per_page)
 
 
 # ---------------- Admin Endpoints ----------------
@@ -436,10 +405,7 @@ def block_user(user_id: int, current_admin: User) -> bool:
     if user_id == current_admin.user_id:
         raise ForbiddenError("Cannot block yourself")
 
-    update_query(
-        "UPDATE users SET is_blocked = 1 WHERE user_id = ?",
-        (user_id,)
-    )
+    update_query("UPDATE users SET is_blocked = 1 WHERE user_id = ?", (user_id,))
     return True
 
 
@@ -460,10 +426,7 @@ def unblock_user(user_id: int, current_admin: User) -> bool:
     if user_id == current_admin.user_id:
         raise ForbiddenError("Cannot unblock yourself")
 
-    update_query(
-        "UPDATE users SET is_blocked = 0 WHERE user_id = ?",
-        (user_id,)
-    )
+    update_query("UPDATE users SET is_blocked = 0 WHERE user_id = ?", (user_id,))
     return True
 
 
@@ -488,10 +451,7 @@ def promote_user(user_id: int, current_admin: User) -> bool:
     if user.role_id == UserRole.ADMIN:
         raise ForbiddenError("User is already an admin")
 
-    update_query(
-        "UPDATE users SET role_id = ? WHERE user_id = ?",
-        (UserRole.ADMIN, user_id)
-    )
+    update_query("UPDATE users SET role_id = ? WHERE user_id = ?", (UserRole.ADMIN, user_id))
     return True
 
 
@@ -516,15 +476,9 @@ def demote_user(user_id: int, current_admin: User) -> bool:
         raise ForbiddenError("User is not an Admin")
 
     # Prevent demoting the last admin
-    count = read_query(
-        "SELECT COUNT(*) FROM users WHERE role_id = ? AND user_id !=?",
-        (UserRole.ADMIN, user_id)
-    )[0][0]
+    count = read_query("SELECT COUNT(*) FROM users WHERE role_id = ? AND user_id !=?", (UserRole.ADMIN, user_id))[0][0]
     if count == 0:
         raise ForbiddenError("Cannot demote the last admin")
 
-    update_query(
-        "UPDATE users SET role_id = ? WHERE user_id = ?",
-        (UserRole.USER, user_id)
-    )
+    update_query("UPDATE users SET role_id = ? WHERE user_id = ?", (UserRole.USER, user_id))
     return True

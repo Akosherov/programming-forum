@@ -333,7 +333,7 @@ class GetMyRepliesShould(unittest.TestCase):
         now = datetime.now()
         mock_rq.side_effect = [
             [(1,)],
-            [(1, "Content", "johndoe", 2, 0, now, 0, 1)],  # reaction=1 → like
+            [(1, 1, "Content", "johndoe", 2, 0, now, 0, 1)],  # reaction=1 → like
         ]
         from services.user_service import get_my_replies
         result = get_my_replies(1)
@@ -344,7 +344,7 @@ class GetMyRepliesShould(unittest.TestCase):
         now = datetime.now()
         mock_rq.side_effect = [
             [(1,)],
-            [(1, "Content", "johndoe", 0, 3, now, 0, 0)],  # reaction=0 → dislike
+            [(1, 0,  "Content", "johndoe", 0, 3, now, 0, 0)],  # reaction=0 → dislike
         ]
         from services.user_service import get_my_replies
         result = get_my_replies(1)
@@ -355,7 +355,7 @@ class GetMyRepliesShould(unittest.TestCase):
         now = datetime.now()
         mock_rq.side_effect = [
             [(1,)],
-            [(1, "Content", "johndoe", 1, 1, now, 0, None)],
+            [(1, 10, "Content", "johndoe", 1, 1, now, 0, None)],
         ]
         from services.user_service import get_my_replies
         result = get_my_replies(1)

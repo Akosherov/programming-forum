@@ -20,6 +20,7 @@ def _reply_row(
 def _make_reply_response(**kwargs):
     defaults = dict(
         id=1, content="Reply content here",
+        author_id=10,
         author_username="johndoe", likes=0, dislikes=0,
         created_at=datetime.now(), is_best=False,
         current_user_reaction=None
@@ -206,7 +207,7 @@ class UpdateReplyShould(unittest.TestCase):
     def test_author_can_update_own_reply(self, mock_rq, mock_uq, mock_get):
         mock_get.return_value = _make_reply_response(content="New content")
         from services.reply_service import update_reply
-        result = update_reply(reply_id=1, user_id=10, new_content="New content")
+        update_reply(reply_id=1, user_id=10, new_content="New content")
         mock_uq.assert_called_once()
         mock_get.assert_called_once_with(1, 10)
 
