@@ -10,6 +10,7 @@ A full-featured discussion forum platform built with FastAPI and MariaDB. Users 
 - [Tech Stack](#tech-stack)
 - [Setup & Installation](#setup--installation)
 - [Known Limitations](#known-limitations)
+- [Git History Note](#git-history-note)
 - [Home Page](#home-page---before-and-after-login)
 - [Database Diagram](#database-diagram)
 - [Contributors](#contributors)
@@ -337,6 +338,12 @@ This allows you to:
 - Hard-delete for topics and replies. Only users are soft-deleted. Deleting a topic cascades to its replies, reactions, invitations, and participants at the database level and cannot be undone.
 - No email notifications. Invitation events, best-reply selections, and admin actions produce no out-of-band communication.
 - No rate limiting. Login attempts and API calls are not throttled.
+
+## Git History Note
+This repository was migrated from a private organization repository to this
+public repo. As a result, the full commit history was not carried over.
+The original development history existed in the private repository
+throughout the project lifecycle.
 
 #### Home Page - before and after login
 
